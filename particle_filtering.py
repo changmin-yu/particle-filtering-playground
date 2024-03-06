@@ -89,7 +89,7 @@ def particle_filtering_SIR(
         estimate_state_history.append(estimated_state)
         
         if save_particles:
-            particle_history.append(particles)
+            particle_history.append(particles.copy())
     
     return true_state_history, estimate_state_history, particle_history
     

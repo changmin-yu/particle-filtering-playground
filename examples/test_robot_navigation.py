@@ -12,7 +12,7 @@ from observation_kernels import RobotGaussianLandmarkObservationKernel
 from estimate_state import estimate_mean_variance_robot_location
 
 
-def main(seed: int, init: str = "uniform"):
+def main(seed: int, init: str = "uniform", save_particles: bool = False):
     np.random.seed(seed)
     
     landmarks = np.array([
@@ -70,7 +70,7 @@ def main(seed: int, init: str = "uniform"):
         transition_kernel=RobotGaussianTransitionKernel, 
         observation_kernel=RobotGaussianLandmarkObservationKernel, 
         estimate_state_fn=estimate_mean_variance_robot_location, 
-        save_particles=False, 
+        save_particles=save_particles, 
         resampling_method=resampling_method, 
         init_particles_kwargs=init_particles_kwargs, 
         init_env_kwargs=init_env_kwargs, 
