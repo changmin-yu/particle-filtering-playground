@@ -12,7 +12,7 @@ from observation_kernels import RobotGaussianLandmarkObservationKernel
 from estimate_state import estimate_mean_variance_robot_location
 
 
-def main(seed: int, init: str = "uniform", save_particles: bool = False):
+def main(seed: int, init: str = "uniform", save_particles: bool = False, num_iters: int = 8, num_particles: int = 5000):
     np.random.seed(seed)
     
     landmarks = np.array([
@@ -21,9 +21,6 @@ def main(seed: int, init: str = "uniform", save_particles: bool = False):
         [12, 14], 
         [18, 21], 
     ])
-    
-    num_particles = 5000
-    num_iters = 8
     
     resampling_method = "systematic"
     

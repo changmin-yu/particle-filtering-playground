@@ -5,23 +5,32 @@ import matplotlib.pyplot as plt
 
 def gaussian_cdf_evaluation(
     particles: np.ndarray, 
+    z: np.ndarray, 
     ax = None
 ):
     """
     Evaluating particle filteirng performance (see, e.g., Extended Fig. 2 in https://www.nature.com/articles/s41586-021-04129-3)
     """
-    particles = (particles - np.mean(particles, axis=0, keepdims=True)) / np.std(particles, axis=0, keepdims=True)
+    N, D = particles[0].shape
     
-    particles = np.reshape(particles, (len(particles), -1))
+    cdf_arr = np.zeros((len(z), ))
+    
+    for i in range(len(z)):
+        cdf_arr[i] = np.sum(np.sum(particles[i] <= z[i], axis=-1) == D) / N
+    
+    sorted_cdf = np.sort(cdf_arr)
+    cumulative = np.cumsum(sorted_cdf) / np.sum(sorted_cdf)
     
     if ax is None:
         fig, ax = plt.subplots()
 
-    for i in range(particles.shape[-1]):
-        ax.plot(stats.norm(0, 1).cdf(np.sort(particles[:, i])), label=str(i))
+    for i in range(D):
+        ax.plot(sorted_cdf, cumulative)
     
-    ax.plot(np.arange(len(particles)), np.arange(len(particles)) / len(particles), "k--")
+    # ax.plot(np.arange(len(particles)), np.arange(len(particles)) / D, "k--")
     
+    ax.set_xlabel("q")
+    ax.set_ylabel("cumulative distribution")
     ax.legend()
     
     plt.show()
