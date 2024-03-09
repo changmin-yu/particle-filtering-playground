@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 def gaussian_cdf_evaluation(
     particles: np.ndarray, 
     z: np.ndarray, 
+    w: np.ndarray, 
     ax = None
 ):
     """
@@ -16,7 +17,7 @@ def gaussian_cdf_evaluation(
     cdf_arr = np.zeros((len(z), ))
     
     for i in range(len(z)):
-        cdf_arr[i] = np.sum(np.sum(particles[i] <= z[i], axis=-1) == D) / N
+        cdf_arr[i] = np.sum(w[i][np.sum(np.less_equal(particles[i], z[i]), axis=-1) == D])
     
     sorted_cdf = np.sort(cdf_arr)
     cumulative = np.cumsum(sorted_cdf) / np.sum(sorted_cdf)

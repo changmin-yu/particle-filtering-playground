@@ -67,6 +67,7 @@ def particle_filtering_SIR(
     true_state_history = []
     estimate_state_history = []
     particle_history = []
+    weight_history = []
     
     env = env_cls(init_true_state, **init_env_kwargs)
     trans_kernel = transition_kernel(**transition_kernel_kwargs)
@@ -87,11 +88,12 @@ def particle_filtering_SIR(
         
         true_state_history.append(env.state.copy())
         estimate_state_history.append(estimated_state)
+        weight_history.append(w.copy())
         
         if save_particles:
             particle_history.append(particles.copy())
     
-    return true_state_history, estimate_state_history, particle_history
+    return true_state_history, estimate_state_history, particle_history, weight_history
     
 
 def predict(

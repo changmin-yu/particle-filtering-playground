@@ -59,7 +59,7 @@ def main(seed: int, init: str = "uniform", save_particles: bool = False, num_ite
     }
     
     
-    true_state_history, estimate_state_history, particle_history = particle_filtering_SIR(
+    true_state_history, estimate_state_history, particle_history, weight_history = particle_filtering_SIR(
         num_particles=num_particles, 
         num_iters=num_iters, 
         init_true_state=initial_state, 
@@ -76,8 +76,8 @@ def main(seed: int, init: str = "uniform", save_particles: bool = False, num_ite
         observation_kernel_kwargs=observation_kernel_kwargs, 
     )
     
-    return true_state_history, estimate_state_history, particle_history
+    return true_state_history, estimate_state_history, particle_history, weight_history
 
 
 if __name__=="__main__":
-    true_state_history, estimate_state_history, particle_history = main(2, init="uniform")
+    true_state_history, estimate_state_history, particle_history, weight_history = main(2, init="uniform")
