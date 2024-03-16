@@ -9,7 +9,7 @@ from initialisation import init_particles
 from resampling import effective_size, resampling
 
 
-def particle_filtering_SIR(
+def particle_filtering_SIR_with_control(
     num_particles: int, 
     num_iters: int, 
     init_true_state: np.ndarray, 
@@ -114,7 +114,7 @@ def update(
     observation_kernel: ObservationKernel, 
     obs: np.ndarray, 
 ):
-    obs_likelihood = observation_kernel.likelihood(particles, obs, w)
+    obs_likelihood = observation_kernel.likelihood(particles, obs)
     
     w *= obs_likelihood
     w += 1e-300

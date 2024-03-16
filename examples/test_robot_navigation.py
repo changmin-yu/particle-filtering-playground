@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from particle_filtering import particle_filtering_SIR
+from particle_filtering_with_control import particle_filtering_SIR_with_control
 from environment_dynamics import RobotNavigationEnvSimple
 from transition_kernels import RobotGaussianTransitionKernel
 from observation_kernels import RobotGaussianLandmarkObservationKernel
@@ -59,7 +59,7 @@ def main(seed: int, init: str = "uniform", save_particles: bool = False, num_ite
     }
     
     
-    true_state_history, estimate_state_history, particle_history, weight_history = particle_filtering_SIR(
+    true_state_history, estimate_state_history, particle_history, weight_history = particle_filtering_SIR_with_control(
         num_particles=num_particles, 
         num_iters=num_iters, 
         init_true_state=initial_state, 
