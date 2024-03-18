@@ -34,4 +34,8 @@ def gaussian_cdf_evaluation(
     ax.set_ylabel("cumulative distribution")
     ax.legend()
     
+    ax.set_xlim(0.0, 1.0)
+    
+    ax.plot([0.0, 1.0], [0.0, 1.0], "k--")
+    
     plt.show()

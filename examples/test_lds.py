@@ -1,3 +1,5 @@
+from typing import Optional
+
 import os
 import sys
 
@@ -13,13 +15,14 @@ from estimate_state import estimate_mean_variance_robot_location
 
 
 def main(
-    seed: int, 
+    seed: Optional[int] = None, 
     init: str = "uniform", 
     save_particles: bool = False, 
     num_iters: int = 10, 
     num_particles: int = 5000, 
 ):
-    np.random.seed(seed)
+    if seed is not None:
+        np.random.seed(seed)
     
     resampling_method = "systematic"
     
