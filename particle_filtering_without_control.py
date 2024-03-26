@@ -123,10 +123,10 @@ def init_particles_uniform(
 
 def init_particles_gaussian(
     mean: np.ndarray, 
-    std: np.ndarray, 
+    cov: np.ndarray, 
     num: int
 ):
     D = mean.shape[0]
-    particles = np.random.multivariate_normal(mean, np.eye(D) * std, size=(num, ))
+    particles = np.random.multivariate_normal(mean, cov, size=(num, ))
 
     return particles

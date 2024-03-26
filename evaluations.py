@@ -3,11 +3,27 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def gaussian_cdf_evaluation(
+def gaussian_cdf_evaluation_KF(
+    mu: np.ndarray, 
+    cov: np.ndarray, 
+    z: np.ndarray, 
+    ax = None, 
+):
+    N = len(z)
+    cdf_arr = np.zeros((N, ))
+    
+    for i in range(N):
+        cdf_arr[i] = stats.multivariate_normal(mean=mu[i], cov=cov[i]).cdf(z[i])
+    
+    return cdf_arr
+
+
+def gaussian_cdf_evaluation_PF(
     particles: np.ndarray, 
     z: np.ndarray, 
     w: np.ndarray, 
-    ax = None
+    ax = None, 
+    n_bins: int = 100, 
 ):
     """
     Evaluating particle filteirng performance (see, e.g., Extended Fig. 2 in https://www.nature.com/articles/s41586-021-04129-3)
@@ -19,14 +35,20 @@ def gaussian_cdf_evaluation(
     for i in range(len(z)):
         cdf_arr[i] = np.sum(w[i][np.sum(np.less_equal(particles[i], z[i]), axis=-1) == D])
     
+    # cdf_hist, bin_edges = np.histogram(cdf_arr, bins=n_bins)
+    # cumulative = np.cumsum(cdf_hist) / np.sum(cdf_hist)
+    
+    # bin_edges = bin_edges[:-1] + (bin_edges[1] - bin_edges[0]) / 2
+    
     sorted_cdf = np.sort(cdf_arr)
     cumulative = np.cumsum(sorted_cdf) / np.sum(sorted_cdf)
     
     if ax is None:
         fig, ax = plt.subplots()
 
-    for i in range(D):
-        ax.plot(sorted_cdf, cumulative)
+    # for i in range(D):
+    ax.plot(sorted_cdf, cumulative, label="particle-filtering")
+        # ax.plot(bin_edges, cumulative)
     
     # ax.plot(np.arange(len(particles)), np.arange(len(particles)) / D, "k--")
     

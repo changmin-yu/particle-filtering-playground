@@ -1,3 +1,4 @@
+from typing import Callable, Dict, Any
 import numpy as np
 
 
@@ -16,15 +17,15 @@ class KalmanFilter:
         C: np.ndarray, 
         Gamma: np.ndarray, 
         Sigma: np.ndarray, 
-        mu0: np.ndarray, 
-        Gamma0: np.ndarray, 
     ):
+        D = A.shape[0]
         self.A = A
         self.C = C
         self.Gamma = Gamma
         self.Sigma = Sigma
-        self.mu0 = mu0
-        self.Gamma0 = Gamma0
+        self.mu0 = np.zeros((D, ))
+        # self.Gamma0 = Gamma0
+        self.Gamma0 = np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
         
     def filtering(self, x: np.ndarray):
         N, D = x.shape
@@ -51,3 +52,28 @@ class KalmanFilter:
             V[n] = V_temp
         
         return mu, V
+
+
+def kalman_filtering_without_control(
+    num_iters: int, 
+    env_cls: Callable,
+    init_env_kwargs: Dict[str, Any] = {},  
+    init_KF_kwargs: Dict[str, Any] = {}, 
+):
+    env = env_cls(**init_env_kwargs)
+    kalman_filter = KalmanFilter(**init_KF_kwargs)
+    
+    true_state_history = []
+    
+    for i in range(num_iters):
+        if i > 0:
+            _ = env.step()
+        obs = env.obs_state()
+        
+        true_state_history.append(env.curr_state.copy())
+    
+    true_state_history = np.array(true_state_history)
+    
+    mu, V = kalman_filter.filtering(true_state_history)
+    
+    return mu, V, true_state_history

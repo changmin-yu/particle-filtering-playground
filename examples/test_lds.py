@@ -36,8 +36,10 @@ def main(
     Sigma = np.eye(2) * 1.0
     Gamma = np.eye(2) * 0.5
     
+    D = 2
     mu0 = np.array([10., 0.])
     Gamma0 = np.eye(2) * 1.0
+    # Gamma0 = np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
     
     if init == "uniform":
         init_particles_kwargs = {
@@ -45,8 +47,8 @@ def main(
         }
     elif init == "gaussian":
         init_particles_kwargs = {
-            "init_x": np.array([10., 0.]), 
-            "std": 5.0, 
+            "init_x": np.array([0., 0.]), 
+            "cov": np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
         }
     else:
         raise NotImplementedError
