@@ -48,7 +48,7 @@ def particle_filtering_without_control(
             particles, w = resampling(particles, w, resampling_method)
             assert np.allclose(w, 1. / num_particles)
         
-        estimated_state = estimate_state_fn(particles, w)
+        estimated_state, _ = estimate_state_fn(particles, w)
         
         true_state_history.append(env.curr_state.copy())
         estimate_state_history.append(estimated_state)
@@ -79,7 +79,7 @@ def update(
 ):
     obs_likelihood = observation_kernel.likelihood(particles, obs)
     
-    w *= obs_likelihood
+    w = obs_likelihood
     w += 1e-300
     w /= np.sum(w)
     

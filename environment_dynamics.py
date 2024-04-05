@@ -1,5 +1,7 @@
-import numpy as np
+from typing import Optional
 
+import numpy as np 
+from scipy.linalg import solve_discrete_lyapunov
 
 class BaseEnv:
     def __init__(self):
@@ -37,12 +39,12 @@ class RobotNavigationEnvSimple(BaseEnv):
 class LDSSimple(BaseEnv):
     def __init__(
         self, 
-        mu0: np.ndarray, 
-        Gamma0: np.ndarray, 
         A: np.ndarray, 
         C: np.ndarray, 
         Gamma: np.ndarray, 
         Sigma: np.ndarray, 
+        mu0: Optional[np.ndarray] = None, 
+        Gamma0: Optional[np.ndarray] = None, 
     ):
         super().__init__()
         
@@ -50,10 +52,13 @@ class LDSSimple(BaseEnv):
         self.C = C
         self.Gamma = Gamma
         self.Sigma = Sigma
+        if mu0 is None or Gamma0 is None:
+            mu0 = np.array([0., 0.])
+            Gamma0 = solve_discrete_lyapunov(A, Gamma)
         self.mu0 = mu0
         self.Gamma0 = Gamma0
     
-        self.init_state = np.random.multivariate_normal(mu0, Gamma0)
+        self.init_state = np.random.multivariate_normal(self.mu0, self.Gamma0)
         self.curr_state = self.init_state
     
     def step(self):

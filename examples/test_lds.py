@@ -4,6 +4,7 @@ import os
 import sys
 
 import numpy as np
+from scipy.linalg import solve_discrete_lyapunov
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
@@ -20,6 +21,8 @@ def main(
     save_particles: bool = False, 
     num_iters: int = 10, 
     num_particles: int = 5000, 
+    mu0: Optional[np.ndarray] = None, 
+    Gamma0: Optional[np.ndarray] = None,
 ):
     if seed is not None:
         np.random.seed(seed)
@@ -27,7 +30,7 @@ def main(
     resampling_method = "systematic"
     
     theta = np.pi / 12
-    A = np.array([
+    A = 0.99 * np.array([
         [np.cos(theta), -np.sin(theta)], 
         [np.sin(theta), np.cos(theta)], 
     ])
@@ -35,10 +38,6 @@ def main(
     
     Sigma = np.eye(2) * 1.0
     Gamma = np.eye(2) * 0.5
-    
-    D = 2
-    mu0 = np.array([10., 0.])
-    Gamma0 = np.eye(2) * 1.0
     # Gamma0 = np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
     
     if init == "uniform":
@@ -48,7 +47,8 @@ def main(
     elif init == "gaussian":
         init_particles_kwargs = {
             "init_x": np.array([0., 0.]), 
-            "cov": np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
+            # "cov": np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
+            "cov": solve_discrete_lyapunov(A, Gamma)
         }
     else:
         raise NotImplementedError

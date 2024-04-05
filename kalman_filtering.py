@@ -1,5 +1,6 @@
 from typing import Callable, Dict, Any
 import numpy as np
+from scipy.linalg import solve_discrete_lyapunov
 
 
 class KalmanFilter:
@@ -25,7 +26,8 @@ class KalmanFilter:
         self.Sigma = Sigma
         self.mu0 = np.zeros((D, ))
         # self.Gamma0 = Gamma0
-        self.Gamma0 = np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
+        # self.Gamma0 = np.matmul(np.linalg.inv(np.eye(D) - A), np.matmul(Gamma, np.linalg.inv(np.eye(D) - A).T))
+        self.Gamma0 = solve_discrete_lyapunov(A, Gamma)
         
     def filtering(self, x: np.ndarray):
         N, D = x.shape
