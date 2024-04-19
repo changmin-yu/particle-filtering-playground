@@ -18,10 +18,11 @@ def particle_filtering_without_control(
     save_particles: bool = False, 
     resampling_method: str = "systematic", 
     init_particles_kwargs: Dict[str, Any] = {},
-    init_env_kwargs: Dict[str, Any] = {},  
+    init_env_kwargs: Dict[str, Any] = {},
     pred_kwargs: Dict[str, Any] = {},
     transition_kernel_kwargs: Dict[str, Any] = {}, 
     observation_kernel_kwargs: Dict[str, Any] = {}, 
+    SIR: bool = True, 
 ):
     particles = init_particles(num=num_particles, **init_particles_kwargs)
     w = np.ones(num_particles) / num_particles
@@ -44,7 +45,11 @@ def particle_filtering_without_control(
         particles = predict(particles, trans_kernel, transition_kwargs=pred_kwargs)
         w = update(particles, w, obs_kernel, obs)
         
-        if effective_size(w) < num_particles / 2:
+        if SIR:
+            if effective_size(w) < num_particles / 2:
+                particles, w = resampling(particles, w, resampling_method)
+                assert np.allclose(w, 1. / num_particles)
+        else:
             particles, w = resampling(particles, w, resampling_method)
             assert np.allclose(w, 1. / num_particles)
         
@@ -79,7 +84,7 @@ def update(
 ):
     obs_likelihood = observation_kernel.likelihood(particles, obs)
     
-    w = obs_likelihood
+    w *= obs_likelihood
     w += 1e-300
     w /= np.sum(w)
     

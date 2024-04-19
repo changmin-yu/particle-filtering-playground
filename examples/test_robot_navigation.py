@@ -10,6 +10,7 @@ from environment_dynamics import RobotNavigationEnvSimple
 from transition_kernels import RobotGaussianTransitionKernel
 from observation_kernels import RobotGaussianLandmarkObservationKernel
 from estimate_state import estimate_mean_variance_robot_location
+from evaluations import gaussian_cdf_evaluation_PF
 
 
 def main(seed: int, init: str = "uniform", save_particles: bool = False, num_iters: int = 8, num_particles: int = 5000):
@@ -80,4 +81,11 @@ def main(seed: int, init: str = "uniform", save_particles: bool = False, num_ite
 
 
 if __name__=="__main__":
-    true_state_history, estimate_state_history, particle_history, weight_history = main(2, init="uniform")
+    import matplotlib.pyplot as plt
+    
+    true_state_history, estimate_state_history, particle_history, weight_history = main(seed=6, init="gaussian", save_particles=True, num_iters=200, num_particles=5000)
+    
+    particle_history_loc = np.array([arr[:, :-1] for arr in particle_history])
+    true_state_history_loc = np.array(true_state_history)
+    weight_history = np.array(weight_history)
+    gaussian_cdf_evaluation_PF(particle_history_loc, true_state_history_loc, weight_history, dim=1)

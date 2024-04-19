@@ -21,7 +21,7 @@ class RobotNavigationEnvSimple(BaseEnv):
         obs_std: float, 
         landmarks: np.ndarray
     ):
-        self.init_state = init_state
+        self.state = init_state
         self.obs_std = obs_std
         self.landmarks = landmarks
         
@@ -62,9 +62,9 @@ class LDSSimple(BaseEnv):
         self.curr_state = self.init_state
     
     def step(self):
-        self.curr_state = np.random.multivariate_normal(np.dot(self.A, self.curr_state), self.Gamma)
+        self.curr_state = np.random.multivariate_normal(np.dot(self.A, self.curr_state), cov=self.Gamma)
         
         return self.curr_state
 
     def obs_state(self):
-        return np.random.multivariate_normal(np.dot(self.C, self.curr_state), self.Gamma)
+        return np.random.multivariate_normal(np.dot(self.C, self.curr_state), cov=self.Sigma)
