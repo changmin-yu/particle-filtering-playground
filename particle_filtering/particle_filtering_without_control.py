@@ -2,9 +2,9 @@ from typing import Callable, Dict, Any, Optional, List
 
 import numpy as np
 
-from resampling import effective_size, resampling
-from transition_kernels import TransitionKernel
-from observation_kernels import ObservationKernel
+from particle_filtering.resampling import effective_size, resampling
+from particle_filtering.transition_kernels import TransitionKernel
+from particle_filtering.observation_kernels import ObservationKernel
 from environment_dynamics import BaseEnv
 
 

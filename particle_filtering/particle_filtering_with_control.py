@@ -2,11 +2,11 @@ from typing import Callable, Dict, Any
 
 import numpy as np
 
-from transition_kernels import TransitionKernel
-from observation_kernels import ObservationKernel
-from environment_dynamics import BaseEnv
-from initialisation import init_particles
-from resampling import effective_size, resampling
+from particle_filtering.transition_kernels import TransitionKernel
+from particle_filtering.observation_kernels import ObservationKernel
+from environment.base import BaseEnv
+from particle_filtering.initialisation import init_particles
+from particle_filtering.resampling import effective_size, resampling
 
 
 def particle_filtering_SIR_with_control(

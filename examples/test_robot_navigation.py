@@ -5,10 +5,10 @@ import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from particle_filtering_with_control import particle_filtering_SIR_with_control
+from particle_filtering.particle_filtering_with_control import particle_filtering_SIR_with_control
 from environment_dynamics import RobotNavigationEnvSimple
-from transition_kernels import RobotGaussianTransitionKernel
-from observation_kernels import RobotGaussianLandmarkObservationKernel
+from particle_filtering.transition_kernels import RobotGaussianTransitionKernel
+from particle_filtering.observation_kernels import RobotGaussianLandmarkObservationKernel
 from estimate_state import estimate_mean_variance_robot_location
 from evaluations import gaussian_cdf_evaluation_PF
 

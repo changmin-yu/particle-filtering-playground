@@ -4,7 +4,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def gaussian_cdf_evaluation_KF(
+def inverse_transform_evaluation_Kalman_filtering(
     mu: np.ndarray, 
     cov: np.ndarray, 
     z: np.ndarray, 
@@ -35,7 +35,7 @@ def gaussian_cdf_evaluation_KF(
     return cdf_arr
 
 
-def gaussian_cdf_evaluation_PF(
+def inverse_transform_evaluation_partical_filtering(
     particles: np.ndarray, 
     z: np.ndarray, 
     w: np.ndarray, 
