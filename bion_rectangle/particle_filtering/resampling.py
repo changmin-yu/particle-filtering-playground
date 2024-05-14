@@ -57,8 +57,9 @@ def stratified_resampling(w: np.ndarray):
     return inds
 
 
-def effective_size(w: np.ndarray):
-    return 1. / np.sum(np.square(w))
+def effective_size(w: torch.Tensor):
+
+    return 1. / torch.sum(torch.square(w))
 
 
 def resample_from_inds(

@@ -28,6 +28,8 @@ class ParticleFiltering:
         init_method: str = "uniform", 
         transition_kernel_kwargs: Dict[str, Any] = {}, 
         observation_kernel_kwargs: Dict[str, Any] = {}, 
+        resampling_loc_std: float = 0.0,
+        resampling_hd_std: float = 0.0, 
     ):
         self.num_particles = num_particles
         self.transition_kernel = transition_kernel(**transition_kernel_kwargs)
@@ -38,7 +40,10 @@ class ParticleFiltering:
         self.effective_size_threshold = effective_size_threshold
         self.init_method = init_method
         
-        self.init_particles(num_particles, generative_model)
+        self.resampling_loc_std = resampling_loc_std
+        self.resampling_hd_std = resampling_hd_std
+        
+        self.init_particles(generative_model)
         
     def step(
         self, 
@@ -63,8 +68,8 @@ class ParticleFiltering:
     
     def init_particles(self, generative_model):
         if self.init_method == "uniform":
-            uniform_dist = distributions.uniform.Uniform(torch.tensor([-generative_model.x_max, -generative_model.y_max, -180]),
-                                                            torch.tensor([generative_model.x_max, generative_model.y_max, 180]))
+            uniform_dist = distributions.uniform.Uniform(torch.tensor([-generative_model.env.x_max, -generative_model.env.y_max, -180]),
+                                                            torch.tensor([generative_model.env.x_max, generative_model.env.y_max, 180]))
             samples = uniform_dist.rsample(torch.Size([self.num_particles]))
             accepted_samples = samples[generative_model.is_inside(samples.numpy()[:, :2])]
             while accepted_samples.shape[0] < self.num_particles:
@@ -74,7 +79,7 @@ class ParticleFiltering:
                         samples[generative_model.is_inside(samples.numpy()[:, :2])]],
                     0)
             
-            self.particles = samples
+            self.particles = accepted_samples
             self.w = torch.full([self.num_particles, ], 1 / self.num_particles)
         else:
             raise NotImplementedError
@@ -86,10 +91,10 @@ class ParticleFiltering:
             noise_control_rotate_pconc, 
             noise_control_shift_per_speed, 
         )
-        self.particles = torch.stack([locs, headings], dim=1)
+        self.particles = torch.cat([locs, headings[:, None]], dim=1)
     
     def update(self, generative_model, i_states_belief: Optional[torch.Tensor] = None):
-        ll = self.observation_kernel.log_likelihood(generative_model, i_states_belief)
+        ll = self.observation_kernel.log_likelihood(self.particles, generative_model, i_states_belief)
         
         w_log = torch.log(self.w)
         w_log_new = w_log + ll
@@ -105,14 +110,29 @@ class ParticleFiltering:
         else:
             raise NotImplementedError(f"{self.resampling_method} resampling is not implemented!")
 
-        inds = torch.from_numpy(inds)
+        # inds = torch.from_numpy(inds)
         
         self.particles = self.particles[inds]
+        
+        if self.resampling_loc_std > 0:
+            loc = self.particles[..., :-1]
+            loc_jitter = loc + torch.normal(0, self.resampling_loc_std, size=loc.size())
+            
+            jitter_trajectory = torch.stack([loc, loc_jitter], dim=-1)
+            intersections = self.transition_kernel.intersection_lines_vvec(jitter_trajectory)
+            loc = torch.where(
+                torch.isinf(intersections).any(-1, keepdim=True),
+                loc_jitter,
+                0.05 * loc + 0.95 * intersections)
+            self.particles[..., :-1] = loc
+        if self.resampling_hd_std > 0:
+            self.particles[..., -1] += torch.normal(0, std=self.resampling_hd_std, size=self.particles[..., -1].size())
+        
         self.w = torch.ones_like(self.w) / len(self.w)
     
     def estimate_posterior(self):
         loc = self.particles[:, :-1]
         mean = torch.mean(loc * self.w[:, None], axis=0)
-        var = torch.mean(torch.sqaure(loc - mean) * self.w[:, None], axis=0)
+        var = torch.mean(torch.square(loc - mean) * self.w[:, None], axis=0)
         
         return mean, var

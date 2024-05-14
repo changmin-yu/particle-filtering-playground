@@ -135,7 +135,7 @@ def main():
             # plot_particles(obs_cont, title=(i, 'resampled'))
             
 
-def main_separate_env_particles():
+def main_separate_env_particles(num_timestep: int = 20, num_particles: int = 2048):
     env = LargeSquare(contrast=0.5, contrast_btw_walls=0.0, height_wall=.3) # contrast between walls, consider 0.3
     retina = Retina(fov_deg=(90., 90.), deg_per_pix=2.)
     gen_cont = GenerativeModelSingleEnvContTabular(env=env, retina=retina)
@@ -148,7 +148,7 @@ def main_separate_env_particles():
     
     transition_kernel_kwargs = {
         "dt": 1., 
-        "corner": gen_cont.env.corners, 
+        "corners": gen_cont.env.corners, 
     }
     observation_kernel_kwargs = {
         "duration": 1., 
@@ -157,10 +157,10 @@ def main_separate_env_particles():
     particles = ParticleFiltering(num_particles, BionTransitionKernel, BionObservationKernel, gen_cont,
                                   transition_kernel_kwargs=transition_kernel_kwargs, observation_kernel_kwargs=observation_kernel_kwargs)
     
-    particle_locs_and_hd = np.zeros((num_seeds, num_timestep, num_particles, 3))
-    particle_weights = np.zeros((num_seeds, num_timestep, num_particles))
-    true_locs = np.zeros((num_seeds, num_timestep, 2))
-    true_hd = np.zeros((num_seeds, num_timestep, 1))
+    particle_locs_and_hd = np.zeros((num_timestep, num_particles, 3))
+    particle_weights = np.zeros((num_timestep, num_particles))
+    true_locs = np.zeros((num_timestep, 2))
+    true_hd = np.zeros((num_timestep, 1))
     
     true_locs[0] = obs_cont.gen.agent_state.loc_xy
     true_hd[0] = obs_cont.gen.agent_state.heading_deg
@@ -260,7 +260,9 @@ def main_for_evaluation(num_seeds: int = 100, num_timestep: int = 20, num_partic
 
 if __name__ == '__main__':
     # main()  
-    num_seeds = 20
-    num_timestep = 20
-    num_particles = 2048
-    main_for_evaluation(num_seeds, num_timestep, num_particles)
+    # num_seeds = 20
+    # num_timestep = 20
+    # num_particles = 20
+    # main_for_evaluation(num_seeds, num_timestep, num_particles)
+    
+    main_separate_env_particles(20, 20)

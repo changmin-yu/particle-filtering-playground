@@ -13,7 +13,7 @@ from bion_rectangle.utils.np2 import (
 
 
 class BionTransitionKernel:
-    def __init__(self, dt: float, corners: np.ndarray):
+    def __init__(self, dt: float, corners: torch.Tensor):
         self.dt = dt
         self.corners = corners
     

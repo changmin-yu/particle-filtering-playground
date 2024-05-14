@@ -1009,7 +1009,7 @@ class GenerativeModelSingleEnvContTabular(GenerativeModelSingleEnv, EnvTable):
 
         return rate_retina, tactile_input
 
-    def get_img_given_state(self, particles: Optional[Particles] = None) -> torch.Tensor:
+    def get_img_given_state(self, particles: Optional[Any] = None) -> torch.Tensor:
         """
         :return: img_given_state[state, x, y, c]
         """
@@ -1059,10 +1059,17 @@ class GenerativeModelSingleEnvContTabular(GenerativeModelSingleEnv, EnvTable):
                     cache.fullpath] = self._img_given_state
                 cache.clear()  # to avoid memory leak
         else:
-            self._img_given_state = torch.stack([
-                self.get_mean_img_given_state((x1, y1), heading1)[0].clone()
-                for x1, y1, heading1 in particles.loc
-            ], 0)
+            try:
+                self._img_given_state = torch.stack([
+
+                    self.get_mean_img_given_state((x1, y1), heading1)[0].clone()
+                    for x1, y1, heading1 in particles.loc
+                ], 0)
+            except Exception:
+                self._img_given_state = torch.stack([
+                    self.get_mean_img_given_state((x1, y1), heading1)[0].clone()
+                    for x1, y1, heading1 in particles
+                ], 0)
 
         return self._img_given_state
 
@@ -1082,14 +1089,14 @@ class GenerativeModelSingleEnvContTabular(GenerativeModelSingleEnv, EnvTable):
             noise_pixel=0.
         ), state
 
-    def log_img_given_state(self, particles: Optional[Particles] = None) -> torch.Tensor:
+    def log_img_given_state(self, particles: Optional[Any] = None) -> torch.Tensor:
         # # CHECKED
         # print('Observer2D.log_img_given_state(): observer ID: %d' % id(self))
         #if self._log_img_given_state is None:
         self._log_img_given_state = torch.log(self.get_img_given_state(particles))
         return self._log_img_given_state
 
-    def get_sum_img_given_state(self, particles: Optional[Particles] = None) -> torch.Tensor:
+    def get_sum_img_given_state(self, particles: Optional[Any] = None) -> torch.Tensor:
         #if self._sum_img_given_state is None:
         self._sum_img_given_state = torch.sum(
             self.get_img_given_state(particles),

@@ -17,12 +17,13 @@ class BionObservationKernel:
     ):
         self.duration = duration
         
-    def log_likelihood(self, generative_model, i_states_belief: Optional[torch.Tensor] = None):
-        ll = self.get_log_likelihood_retina_vectorised(generative_model)[0]
+    def log_likelihood(self, x, generative_model, i_states_belief: Optional[torch.Tensor] = None):
+        ll = self.get_log_likelihood_retina_vectorised(x, generative_model, i_states_belief)[0]
         return ll
     
     def get_log_likelihood_retina_vectorised(
         self, 
+        x, 
         generative_model, 
         i_states_belief: Optional[torch.Tensor] = None
     ):
@@ -37,10 +38,10 @@ class BionObservationKernel:
                         rate_imgs.unsqueeze(1)
                         #
                         # [1, state_belief, x, y, chn]
-                        * (self.log_img_given_state()[None, :]
+                        * (generative_model.log_img_given_state(x)[None, :]
                            + np.log(self.duration)),
                         [-3, -2, -1]
-                    ) - generative_model.get_sum_img_given_state()[None, :]  # [1, state_belief]
+                    ) - generative_model.get_sum_img_given_state(x)[None, :]  # [1, state_belief]
             ) * self.duration
         elif i_states_belief.ndim == 1:
             return (
@@ -49,10 +50,10 @@ class BionObservationKernel:
                         rate_imgs
                         #
                         # [state_beliefs_to_consider, x, y, chn]
-                        * (self.log_img_given_state()[i_states_belief]
+                        * (generative_model.log_img_given_state(x)[i_states_belief]
                            + np.log(self.duration)),
                         [-3, -2, -1]
-                    ) - generative_model.get_sum_img_given_state()[i_states_belief]  # [state_belief]
+                    ) - generative_model.get_sum_img_given_state(x)[i_states_belief]  # [state_belief]
             ) * self.duration
         elif i_states_belief.ndim == 2:
             return (
@@ -61,10 +62,10 @@ class BionObservationKernel:
                         rate_imgs[:, None, :]
                         #
                         # [state_true_batch, state_beliefs_to_consider, x, y, chn]
-                        * (indexshape(generative_model.log_img_given_state(), i_states_belief)
+                        * (indexshape(generative_model.log_img_given_state(x), i_states_belief)
                            + np.log(self.duration)),
                         [-3, -2, -1]
-                    ) - indexshape(generative_model.get_sum_img_given_state(), i_states_belief)
+                    ) - indexshape(generative_model.get_sum_img_given_state(x), i_states_belief)
             ) * self.duration
         else:
             raise ValueError()

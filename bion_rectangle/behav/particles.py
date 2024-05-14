@@ -86,7 +86,7 @@ class Particles(np2.MonitorChange):
         :return:
         """
         new_loc = self.loc.clone()
-        new_loc[:, :2] += torch.normal(mean=0, std=0.03, size=self.loc[:, :2] .size())
+        new_loc[:, :2] += torch.normal(mean=0, std=0.03, size=self.loc[:, :2].size())
         new_loc[:, 2] += torch.normal(mean=0, std=2, size=self.loc[:, 2].size())
         return new_loc
 
