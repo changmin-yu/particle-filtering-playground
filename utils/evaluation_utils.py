@@ -4,7 +4,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def gaussian_cdf_evaluation_KF(
+def inverse_transform_evaluation_Kalman_filtering(
     mu: np.ndarray, 
     cov: np.ndarray, 
     z: np.ndarray, 
@@ -35,14 +35,15 @@ def gaussian_cdf_evaluation_KF(
     return cdf_arr
 
 
-def gaussian_cdf_evaluation_PF(
+def inverse_transform_evaluation_partical_filtering(
     particles: np.ndarray, 
     z: np.ndarray, 
     w: np.ndarray, 
     ax = None, 
     dim: Optional[int] = None, 
     label: Optional[str] = None, 
-    color: str = "red"
+    color: str = "red", 
+    title: str = "", 
 ):
     """
     Evaluating particle filteirng performance (see, e.g., Extended Fig. 2 in https://www.nature.com/articles/s41586-021-04129-3)
@@ -71,3 +72,7 @@ def gaussian_cdf_evaluation_PF(
     ax.set_xlim(0.0, 1.0)
     
     ax.plot([0.0, 1.0], [0.0, 1.0], "k--")
+    
+    ax.set_title(title)
+    
+    return sorted_cdf, ecdf

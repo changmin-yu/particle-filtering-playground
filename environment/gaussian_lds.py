@@ -1,41 +1,16 @@
 from typing import Optional
 
-import numpy as np 
+import numpy as np
+
 from scipy.linalg import solve_discrete_lyapunov
 
-class BaseEnv:
-    def __init__(self):
-        pass
-    
-    def step(self):
-        return
-    
-    def obs_state(self):
-        return
-    
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-class RobotNavigationEnvSimple(BaseEnv):
-    def __init__(
-        self, 
-        init_state: np.ndarray, 
-        obs_std: float, 
-        landmarks: np.ndarray
-    ):
-        self.state = init_state
-        self.obs_std = obs_std
-        self.landmarks = landmarks
-        
-    def step(self):
-        self.state += np.array([1., 1.])
-        
-        control_signal = np.array([0.0, np.sqrt(2)])
-        
-        return control_signal
-    
-    def obs_state(self):
-        return np.linalg.norm(self.landmarks - self.state, axis=-1) + np.random.randn(len(self.landmarks)) * self.obs_std
-    
-    
+from environment.base import BaseEnv
+
+
 class LDSSimple(BaseEnv):
     def __init__(
         self, 
@@ -68,3 +43,4 @@ class LDSSimple(BaseEnv):
 
     def obs_state(self):
         return np.random.multivariate_normal(np.dot(self.C, self.curr_state), cov=self.Sigma)
+    

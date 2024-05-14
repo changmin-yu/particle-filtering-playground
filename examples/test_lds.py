@@ -8,11 +8,10 @@ from scipy.linalg import solve_discrete_lyapunov
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 
-from particle_filtering_without_control import particle_filtering_without_control
-from environment_dynamics import LDSSimple
-from transition_kernels import LDSTransitionKernel
-from observation_kernels import LDSObservationKernel
-from estimate_state import estimate_mean_variance_robot_location
+from particle_filtering.particle_filtering import ParticleFiltering
+from environment.gaussian_lds import LDSSimple
+from transition_kernels.gaussian_lds import LDSTransitionKernel
+from observation_kernels.gaussian_lds import LDSObservationKernel
 
 
 def main(
@@ -23,11 +22,10 @@ def main(
     num_particles: int = 5000, 
     mu0: Optional[np.ndarray] = None, 
     Gamma0: Optional[np.ndarray] = None,
+    resampling_method = "systematic", 
 ):
     if seed is not None:
         np.random.seed(seed)
-    
-    resampling_method = "systematic"
     
     theta = np.pi / 12
     A = 0.99 * np.array([
@@ -42,7 +40,7 @@ def main(
     
     if init == "uniform":
         init_particles_kwargs = {
-            "x_range": [np.array([-20, 20]), np.array([-20, 20])]
+            "lims": [np.array([-20, 20]), np.array([-20, 20])]
         }
     elif init == "gaussian":
         init_particles_kwargs = {
@@ -72,23 +70,56 @@ def main(
         "Sigma": Sigma, 
     }
     
-    true_state_history, estimate_state_history, particle_history, weight_history, obs_history = particle_filtering_without_control(
+    particle_filter = ParticleFiltering(
         num_particles=num_particles, 
-        num_iters=num_iters, 
-        env_cls=LDSSimple, 
         transition_kernel=LDSTransitionKernel, 
         observation_kernel=LDSObservationKernel, 
-        estimate_state_fn=estimate_mean_variance_robot_location, 
-        save_particles=save_particles, 
         resampling_method=resampling_method, 
         init_particles_kwargs=init_particles_kwargs, 
-        init_env_kwargs=init_env_kwargs, 
         transition_kernel_kwargs=transition_kernel_kwargs, 
         observation_kernel_kwargs=observation_kernel_kwargs, 
     )
     
-    return true_state_history, estimate_state_history, particle_history, weight_history, obs_history
+    env = LDSSimple(**init_env_kwargs)
+    
+    true_state_history = np.zeros((num_iters, 2))
+    particle_mean_history = np.zeros((num_iters, 2))
+    particle_std_history = np.zeros((num_iters, 2))
+    particle_history = np.zeros((num_iters, num_particles, 2))
+    weight_history = np.zeros((num_iters, num_particles))
+    obs_history = np.zeros((num_iters, 2))
+    
+    for i in range(num_iters):
+        if i > 0:
+            _ = env.step()
+        obs = env.obs_state()
+        
+        particle_mean, particle_std = particle_filter.step(obs)
+        
+        true_state_history[i] = env.curr_state
+        particle_mean_history[i] = particle_mean
+        particle_std_history[i] = particle_std
+        obs_history[i] = obs
+        if save_particles:
+            particle_history[i] = particle_filter.particles
+            weight_history[i] = particle_filter.w
+    
+    return (
+        true_state_history, 
+        particle_mean_history, 
+        particle_std_history, 
+        particle_history, 
+        weight_history, 
+        obs_history, 
+    )
 
 
 if __name__=="__main__":
-    true_state_history, estimate_state_history, particle_history, weight_history = main(2, init="uniform")
+    (
+        true_state_history, 
+        particle_mean_history, 
+        particle_std_history, 
+        particle_history, 
+        weight_history, 
+        obs_history, 
+    ) = main(2, init="gaussian")
