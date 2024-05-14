@@ -42,7 +42,8 @@ def inverse_transform_evaluation_partical_filtering(
     ax = None, 
     dim: Optional[int] = None, 
     label: Optional[str] = None, 
-    color: str = "red"
+    color: str = "red", 
+    title: str = "", 
 ):
     """
     Evaluating particle filteirng performance (see, e.g., Extended Fig. 2 in https://www.nature.com/articles/s41586-021-04129-3)
@@ -71,3 +72,7 @@ def inverse_transform_evaluation_partical_filtering(
     ax.set_xlim(0.0, 1.0)
     
     ax.plot([0.0, 1.0], [0.0, 1.0], "k--")
+    
+    ax.set_title(title)
+    
+    return sorted_cdf, ecdf
