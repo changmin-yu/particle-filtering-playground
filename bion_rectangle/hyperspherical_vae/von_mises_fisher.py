@@ -4,7 +4,7 @@ from torch.distributions.kl import register_kl
 
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 
 from bion_rectangle.hyperspherical_vae.ive import ive
 from bion_rectangle.hyperspherical_vae.hyperspherical_uniform import HypersphericalUniform

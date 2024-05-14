@@ -23,6 +23,9 @@ from bion_rectangle.environment import (
 )
 from bion_rectangle.utils import numpytorch as np2
 from bion_rectangle.behav.env_boundary import LargeSquare
+from bion_rectangle.particle_filtering.particle_filtering import ParticleFiltering
+from bion_rectangle.particle_filtering.transition_kernel import BionTransitionKernel
+from bion_rectangle.particle_filtering.observation_kernel import BionObservationKernel
 
 torch.set_default_dtype(torch.float64)
 
@@ -130,6 +133,59 @@ def main():
             0.1 * obs_cont.particles.n_particle) and i % 5 == 4:
             obs_cont.resample_cont(MH=False)
             # plot_particles(obs_cont, title=(i, 'resampled'))
+            
+
+def main_separate_env_particles():
+    env = LargeSquare(contrast=0.5, contrast_btw_walls=0.0, height_wall=.3) # contrast between walls, consider 0.3
+    retina = Retina(fov_deg=(90., 90.), deg_per_pix=2.)
+    gen_cont = GenerativeModelSingleEnvContTabular(env=env, retina=retina)
+    obs_cont = ObserverNav(gen_cont, (0., 0.),
+                                .85, (0.3, 0.))
+    
+    agent_pos = torch.tensor([0.3, 0.3, 120.])
+    control = Control(15, (0.1, 0.))
+    obs_cont.gen.agent_state.set_state((agent_pos[0], agent_pos[1]), agent_pos[2])
+    
+    transition_kernel_kwargs = {
+        "dt": 1., 
+        "corner": gen_cont.env.corners, 
+    }
+    observation_kernel_kwargs = {
+        "duration": 1., 
+    }
+    
+    particles = ParticleFiltering(num_particles, BionTransitionKernel, BionObservationKernel, gen_cont,
+                                  transition_kernel_kwargs=transition_kernel_kwargs, observation_kernel_kwargs=observation_kernel_kwargs)
+    
+    particle_locs_and_hd = np.zeros((num_seeds, num_timestep, num_particles, 3))
+    particle_weights = np.zeros((num_seeds, num_timestep, num_particles))
+    true_locs = np.zeros((num_seeds, num_timestep, 2))
+    true_hd = np.zeros((num_seeds, num_timestep, 1))
+    
+    true_locs[0] = obs_cont.gen.agent_state.loc_xy
+    true_hd[0] = obs_cont.gen.agent_state.heading_deg
+    
+    for i in range(10):
+        print(i)
+        if i > 0:
+            update_state(obs_cont, control)
+            
+            true_locs[i] = obs_cont.gen.agent_state.loc_xy
+            true_hd[i] = obs_cont.gen.agent_state.heading_deg
+        
+        particle_mean, particle_var = particles.step(
+            gen_cont, control, obs_cont.noise_control_rotate_pconc[0], noise_control_shift_per_speed = obs_cont.noise_control_shift_per_speed[:]
+        )
+
+        particle_locs_and_hd[i] = particles.particles
+        particle_weights[i] = particles.w
+    
+    return (
+        particle_locs_and_hd, 
+        particle_weights, 
+        true_locs, 
+        true_hd, 
+    )
 
 
 def main_for_evaluation(num_seeds: int = 100, num_timestep: int = 20, num_particles: int = 5000):
