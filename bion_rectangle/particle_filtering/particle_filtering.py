@@ -44,6 +44,14 @@ class ParticleFiltering:
         self.resampling_hd_std = resampling_hd_std
         
         self.init_particles(generative_model)
+    
+    @property
+    def loc(self):
+        return self.particles[..., :-1]
+
+    @property
+    def heading_deg(self):
+        return self.particles[..., -1]
         
     def step(
         self, 
@@ -57,10 +65,12 @@ class ParticleFiltering:
         self.update(generative_model, i_states_belief)
         
         if self.resampling_strategy == "SIR":
+            self.resampling()
+        elif self.resampling_strategy == "generic":
             if effective_size(self.w) < self.effective_size_threshold * self.num_particles:
                 self.resampling()
         else:
-            self.resampling()
+            raise NotImplementedError
         
         particle_mean, particle_var = self.estimate_posterior()
         

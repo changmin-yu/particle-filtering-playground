@@ -260,9 +260,9 @@ def main_for_evaluation(num_seeds: int = 100, num_timestep: int = 20, num_partic
 
 if __name__ == '__main__':
     # main()  
-    # num_seeds = 20
-    # num_timestep = 20
-    # num_particles = 20
-    # main_for_evaluation(num_seeds, num_timestep, num_particles)
+    num_seeds = 20
+    num_timestep = 20
+    num_particles = 20
+    main_for_evaluation(num_seeds, num_timestep, num_particles)
     
-    main_separate_env_particles(20, 20)
+    # main_separate_env_particles(20, 20)

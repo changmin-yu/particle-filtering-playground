@@ -14,6 +14,8 @@ import torch
 from torch import distributions, Tensor
 import torch.nn.functional as F
 
+import math
+
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
@@ -970,7 +972,7 @@ class GenerativeModelSingleEnvContTabular(GenerativeModelSingleEnv, EnvTable):
         return image
 
     def measure_retinal_image_vec(
-            self, i_state: torch.Tensor, gain_retina=None
+            self, state: torch.Tensor, i_state: Optional[torch.Tensor] = None, gain_retina=None
     ) -> torch.Tensor:
         """
         :param i_state:
@@ -980,7 +982,14 @@ class GenerativeModelSingleEnvContTabular(GenerativeModelSingleEnv, EnvTable):
             but it is estimated with less noise thanks to more averaging.
         :return:
         """
-        image = self.get_img_given_state()[i_state]
+        # image = self.get_img_given_state()[i_state]
+        if self._img_given_state is not None and self.is_binned_space(self.env):
+            if i_state is None:
+                i_state = self.get_i_state(loc=state.loc, heading_deg=state.heading_deg)
+                
+            image = self._img_given_state[i_state, :]
+        else:
+            image = super().measure_retinal_image(state)
         if gain_retina is None:
             gain_retina = self.gain_retina
         if gain_retina is None or gain_retina == 0:
@@ -1732,7 +1741,7 @@ class ObserverNav(Observer, EnvTable):
             # --- Predict forward shifts
             rate = (control.velocity_ego[0] /
                     (self.dt * control.velocity_ego[0] * noise_control_shift_per_speed[0]) ** 2)
-            conc = control.velocity_ego[0] * rate
+            conc = control.velocity_ego[0] * self.dt * rate
             # pred_f_gam_dist = distributions.Gamma(conc, rate)
 
             # --- Predict rightward shifts
@@ -1749,7 +1758,7 @@ class ObserverNav(Observer, EnvTable):
             new_loc = self.particles.loc[..., :2] + (rot @ torch.stack(
                 [distributions.Gamma(conc,
                                      rate).rsample([self.particles.n_particle]),
-                 distributions.Normal(0, (self.dt *
+                 distributions.Normal(0, (math.sqrt(self.dt) *
                                           control.velocity_ego[0] *
                                           noise_control_shift_per_speed[1]) ** 2).rsample(
                      [self.particles.n_particle])], -1)[..., None])[..., 0]
@@ -2720,7 +2729,7 @@ class ObserverNav(Observer, EnvTable):
 
         if not skip_visual:
             loglik = self.get_loglik_retina_vectorized(
-                self.gen.measure_retinal_image(self.gen.agent_state)[None, :],
+                self.gen.measure_retinal_image_vec(state=self.gen.agent_state)[None, :],
                 duration=duration,
             )[0]
 
